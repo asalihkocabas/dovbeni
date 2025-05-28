@@ -104,10 +104,17 @@
     @media (max-width: 600px) {
       #head {
         width: 90px;
+        position: absolute;
+        top: 7px; /* Kafa konumunu buradan ayarlayabilirsin */
+        left: calc(50% - 45px);
+        transition: transform 0.3s ease;
+        z-index: 2;
       }
       
       #body {
         width: 80px;
+        margin-top: 100px; /* Kafadan alta gövdeyi itiyoruz */
+        z-index: 1;
       }
 
       #speech {
