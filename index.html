@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boks Oyunu</title>
+  <style>
+    body {
+      margin: 0;
+      background: #f0f0f0;
+      overflow: hidden;
+      cursor: none;
+      font-family: Arial, sans-serif;
+    }
+
+    #container {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    #character {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 1;
+    }
+
+    #head {
+      width: 180px;
+      position: absolute;
+      top: 15px; /* Kafa konumunu buradan ayarlayabilirsin */
+      left: calc(50% - 90px);
+      transition: transform 0.3s ease;
+      z-index: 2;
+    }
+
+    #body {
+      width: 160px;
+      margin-top: 200px; /* Kafadan alta gövdeyi itiyoruz */
+      z-index: 1;
+    }
+
+    #glove {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    #score-box {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #222;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 18px;
+      text-align: center;
+      z-index: 20;
+    }
+
+    #reset {
+      margin-top: 8px;
+      background: crimson;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #speech {
+      position: absolute;
+      background: white;
+      border: 2px solid #333;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 16px;
+      z-index: 15;
+      display: none;
+      max-width: 140px;
+    }
+
+    #speech::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 10px;
+      border-width: 8px;
+      border-style: solid;
+      border-color: white transparent transparent transparent;
+    }
+
+    @media (max-width: 600px) {
+      #head, #body {
+        width: 90px;
+      }
+
+      #speech {
+        font-size: 14px;
+        max-width: 100px;
+      }
+
+      #glove {
+        width: 45px;
+        height: 45px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="score-box">
+    Skor: <span id="score-value">0</span><br />
+    <button id="reset">Sıfırla</button>
+  </div>
+
+  <div id="container">
+    <div id="character">
+      <img id="head" src="face.png" alt="head" />
+      <img id="body" src="body.png" alt="body" />
+    </div>
+    <div id="speech"></div>
+  </div>
+
+  <img id="glove" src="glove.png" alt="glove" />
+  <audio id="punch1" src="punch.mp3" preload="auto"></audio>
+  <audio id="punch2" src="punch.mp3" preload="auto"></audio>
+  <audio id="punch3" src="punch.mp3" preload="auto"></audio>
+
+  <script>
+    const glove = document.getElementById("glove");
+    const head = document.getElementById("head");
+    const speech = document.getElementById("speech");
+    const scoreValue = document.getElementById("score-value");
+    const resetBtn = document.getElementById("reset");
+    const punchSounds = [punch1, punch2, punch3];
+
+    let score = 0;
+    const expressions = ["Dur!", "Of!", "Ah!", "Yapma!", "Auu!", "Hey!"];
+    const faceImages = ["face1.png", "face2.png", "face3.png"];
+
+    let revertTimeout, faceTimeout;
+
+    // Eldiven takibi
+    document.addEventListener("mousemove", (e) => {
+      glove.style.left = `${e.pageX - glove.offsetWidth / 2}px`;
+      glove.style.top = `${e.pageY - glove.offsetHeight / 2}px`;
+    });
+
+    head.addEventListener("click", (e) => {
+      const sound = punchSounds[Math.floor(Math.random() * punchSounds.length)];
+      sound.currentTime = 0;
+      sound.play();
+
+      const original = "face.png";
+      const alt = faceImages[Math.floor(Math.random() * faceImages.length)];
+      head.src = alt;
+
+      clearTimeout(revertTimeout);
+      clearTimeout(faceTimeout);
+
+      const rect = head.getBoundingClientRect();
+      const isLeft = e.clientX < rect.left + rect.width / 2;
+
+      head.style.transform = isLeft
+        ? "rotate(-15deg) scale(1.1) translateY(10px) skewX(-8deg)"
+        : "rotate(15deg) scale(1.1) translateY(10px) skewX(8deg)";
+
+      revertTimeout = setTimeout(() => {
+        head.style.transform = "rotate(0) scale(1) translateY(0) skewX(0)";
+      }, 300);
+
+      faceTimeout = setTimeout(() => {
+        head.src = original;
+      }, 400);
+
+      // Konuşma balonunu kafanın konumuna göre ayarla
+      const headRect = head.getBoundingClientRect();
+      const headCenterX = headRect.left + headRect.width / 2;
+      const headTop = headRect.top;
+
+      speech.style.left = `${headCenterX + 50}px`;
+      speech.style.top = `${headTop - 30}px`;
+
+      speech.textContent = expressions[Math.floor(Math.random() * expressions.length)];
+      speech.style.display = "block";
+      setTimeout(() => (speech.style.display = "none"), 1000);
+
+      score++;
+      scoreValue.textContent = score;
+    });
+
+    resetBtn.addEventListener("click", () => {
+      score = 0;
+      scoreValue.textContent = score;
+    });
+  </script>
+</body>
+</html>
